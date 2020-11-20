@@ -161,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void processImage(Bitmap image){
         job_id = "";
+        image = Bitmap.createScaledBitmap(image, 480, 720, true);
         String image_to_send = encodeImage(image);
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "https://color-cone-server.herokuapp.com/";
@@ -280,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     queue.add(jsonObjReq);
                 }
-            }, 500);
+            }, 3000);
         }
 
 
@@ -323,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String encodeImage(Bitmap image){
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.JPEG, 15, baos);
+        image.compress(Bitmap.CompressFormat.JPEG, 100, baos);  
         byte[] imageBytes = baos.toByteArray();
 
         // image to string
