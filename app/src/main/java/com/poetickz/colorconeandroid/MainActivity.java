@@ -161,7 +161,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void processImage(Bitmap image){
         job_id = "";
-        image = Bitmap.createScaledBitmap(image, 480, 720, true);
+        int width = image.getWidth();
+        int height = image.getHeight();
+        //image = Bitmap.createScaledBitmap(image, width*720/height, 720, true);
+        image = Bitmap.createScaledBitmap(image, 430,720, true);
         String image_to_send = encodeImage(image);
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "https://color-cone-server.herokuapp.com/";
