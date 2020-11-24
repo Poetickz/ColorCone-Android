@@ -2,10 +2,12 @@ package com.poetickz.colorconeandroid;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.app.WallpaperManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.nfc.Tag;
 import android.os.Bundle;
@@ -46,19 +48,24 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
     // Initialize Variable
     ImageView imageView;
     Button btOpen;
+    Button btSave;
     private  JSONObject respuesta;
     private boolean request_success = false;
     private String job_id;
-    private String pictureImagePath = "";
+    private String pictureImagFiamePath = "";
     private int times;
     public final String APP_TAG = "ColorCone";
     public String photoFileName = "photo.jpg";
@@ -77,6 +84,8 @@ public class MainActivity extends AppCompatActivity {
         //Assign Variable
         imageView = findViewById(R.id.image_view);
         btOpen = findViewById(R.id.bt_open);
+        btSave = findViewById(R.id.saveBtn);
+        btSave.setVisibility(View.GONE);
 
         // Request camera permission
         if (ContextCompat.checkSelfPermission(MainActivity.this,
@@ -107,6 +116,17 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(cameraIntent, 100);
             }
         });
+        btSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    SaveImage();
+                } catch (IOException e) {
+                    Toast toast = Toast. makeText(getApplicationContext(), "Error :c", Toast. LENGTH_SHORT); toast. show();
+                }
+            }
+        });
+
     }
 
     @Override
@@ -163,8 +183,10 @@ public class MainActivity extends AppCompatActivity {
         job_id = "";
         int width = image.getWidth();
         int height = image.getHeight();
-        //image = Bitmap.createScaledBitmap(image, width*720/height, 720, true);
-        image = Bitmap.createScaledBitmap(image, 430,720, true);
+        if(height > 720)
+            image = Bitmap.createScaledBitmap(image, width*720/height, 720, true);
+
+
         String image_to_send = encodeImage(image);
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "https://color-cone-server.herokuapp.com/";
@@ -308,7 +330,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void decode_image(String b_image){
+    private void SaveImage() throws IOException {
+        imageView = findViewById(R.id.image_view);
+        BitmapDrawable draw = (BitmapDrawable) imageView.getDrawable();
+        Bitmap bitmap = draw.getBitmap();
+
+        FileOutputStream outStream = null;
+        File sdCard = Environment.getExternalStorageDirectory();
+        File dir = new File(sdCard.getAbsolutePath() + "/colorCone");
+        dir.mkdirs();
+        String fileName = String.format("%d.jpg", System.currentTimeMillis());
+        File outFile = new File(dir, fileName);
+        outStream = new FileOutputStream(outFile);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outStream);
+        outStream.flush();
+        outStream.close();
+        Intent intent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+        intent.setData(Uri.fromFile(outFile));
+        sendBroadcast(intent);
+        Toast toast = Toast. makeText(getApplicationContext(), "Saved!", Toast. LENGTH_SHORT); toast. show();
+    }
+
+    private void decode_image(String b_image) throws IOException {
 
         byte[] decodedString = Base64.decode(b_image, Base64.DEFAULT);
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -319,9 +362,10 @@ public class MainActivity extends AppCompatActivity {
         options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         Bitmap image = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length, options);
         imageView.setImageBitmap(image);
+        btSave.setVisibility(View.VISIBLE);
         Log.d("Image Size", String.valueOf(BitmapCompat.getAllocationByteCount(image)));
         request_success = true;
-
+        Toast toast = Toast. makeText(getApplicationContext(), "Done!", Toast. LENGTH_SHORT); toast. show();
 
     }
 
