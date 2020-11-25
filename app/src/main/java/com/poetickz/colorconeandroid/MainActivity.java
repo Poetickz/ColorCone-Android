@@ -108,12 +108,15 @@ public class MainActivity extends AppCompatActivity {
         btOpen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                photoFile = getPhotoFileUri(photoFileName);
-                Uri fileProvider = FileProvider.getUriForFile(MainActivity.this, "com.poetickz.colorconeandroid.fileprovider", photoFile);
-                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileProvider);
-                startActivityForResult(cameraIntent, 100);
+                try{
+                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    photoFile = getPhotoFileUri(photoFileName);
+                    Uri fileProvider = FileProvider.getUriForFile(MainActivity.this, "com.poetickz.colorconeandroid.fileprovider", photoFile);
+                    cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, fileProvider);
+                    startActivityForResult(cameraIntent, 100);
+                }catch(Exception e){
+                    Toast toast = Toast. makeText(getApplicationContext(), "Error :c", Toast. LENGTH_SHORT); toast. show();
+                }
             }
         });
         btSave.setOnClickListener(new View.OnClickListener() {
@@ -129,12 +132,14 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         request_success = false;
         received = false;
-        if (requestCode == 100) {
+        //Toast toast = Toast. makeText(getApplicationContext(), Integer.toString(resultCode), Toast. LENGTH_SHORT); toast. show();
+        if (requestCode == 100 && resultCode!=0) {
             //Get Capture Image
             Bitmap captureImage = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
             Bitmap.createScaledBitmap(captureImage, 150, 100, true);
